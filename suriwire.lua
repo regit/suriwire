@@ -25,7 +25,8 @@
 
 if (gui_enabled()) then 
 	suri_alerts = {}
-	suri_proto = Proto("suricata","Suricata Postdissector")
+	suri_file = "sample.log"
+	local suri_proto = Proto("suricata","Suricata Postdissector")
 	-- create a function to "postdissect" each frame
 	local suri_sid = ProtoField.string("myproto.sid", "SID", FT_STRING)
 	local suri_msg = ProtoField.string("myproto.msg", "Message", FT_STRING)
@@ -34,7 +35,6 @@ if (gui_enabled()) then
 	     for i, alert in ipairs(suri_alerts) do
 		  a = pinfo.number - alert[1]
 		  if (pinfo.number - alert[1] == 0) then
-		     -- print(alert[1])
 		     subtree = tree:add(suri_proto, buffer[0])
 		     -- add protocol fields to subtree
 		     subtree:add(suri_msg, "SID: " .. alert[2] .. ": "):append_text(alert[3])
@@ -46,8 +46,8 @@ if (gui_enabled()) then
 
 	function suri_proto.init()
 	    local pat = "(%d+):(%d+):(.*)"
-	    io.input("sample.log")
 	    -- read the lines in table 'lines'
+	    io.input(suri_file)
 	    for line in io.lines() do
 	      local alert = {}
 	      for id, sid, text in string.gmatch(line, pat) do
@@ -63,7 +63,7 @@ if (gui_enabled()) then
 	function suriwire_activate()
 		-- run suricata
 		-- set input file
-	    	io.input("sample.log")
+	    	suri_file = "sample.log"
 		register_postdissector(suri_proto)
 	end
 
@@ -74,3 +74,4 @@ if (gui_enabled()) then
 	register_menu("Suricata/Activate", suriwire_activate, MENU_TOOLS_UNSORTED)
 	register_menu("Suricata/Wiki", suriwire_page, MENU_TOOLS_UNSORTED)
 end
+
