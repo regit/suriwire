@@ -26,10 +26,10 @@
 if (gui_enabled()) then 
 	suri_alerts = {}
 	suri_file = "sample.log"
-	local suri_proto = Proto("suricata","Suricata Postdissector")
+	local suri_proto = Proto("suricata","Suricata Analysis")
 	-- create a function to "postdissect" each frame
-	local suri_sid = ProtoField.string("myproto.sid", "SID", FT_STRING)
-	local suri_msg = ProtoField.string("myproto.msg", "Message", FT_STRING)
+	local suri_sid = ProtoField.string("suricata.sid", "SID", FT_STRING)
+	local suri_msg = ProtoField.string("suricata.msg", "Message", FT_STRING)
 
 	function suri_proto.dissector(buffer,pinfo,tree)
 	     for i, alert in ipairs(suri_alerts) do
@@ -72,6 +72,6 @@ if (gui_enabled()) then
 	end
 
 	register_menu("Suricata/Activate", suriwire_activate, MENU_TOOLS_UNSORTED)
-	register_menu("Suricata/Wiki", suriwire_page, MENU_TOOLS_UNSORTED)
+	register_menu("Suricata/Web", suriwire_page, MENU_TOOLS_UNSORTED)
 end
 
