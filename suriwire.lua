@@ -47,7 +47,6 @@ if (gui_enabled()) then
 	function suri_proto.init()
 	    local pat = "(%d+):(%d+):(.*)"
 	    -- read the lines in table 'lines'
-	    io.input(suri_file)
 	    for line in io.lines() do
 	      local alert = {}
 	      for id, sid, text in string.gmatch(line, pat) do
@@ -61,10 +60,15 @@ if (gui_enabled()) then
 
 	-- register our protocol as a postdissector
 	function suriwire_activate()
+		function suriwire_register(file)
+			suri_file = file
+			print (file)
+	    		io.input(suri_file)
+			register_postdissector(suri_proto)
+		end
 		-- run suricata
 		-- set input file
-	    	suri_file = "sample.log"
-		register_postdissector(suri_proto)
+		new_dialog("Choose alert file", suriwire_register, "Choose file")
 	end
 
 	function suriwire_page()
