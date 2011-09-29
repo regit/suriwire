@@ -24,13 +24,13 @@
 
 
 if (gui_enabled()) then 
+	local suri_proto = Proto("suricata","Suricata Analysis")
+	local suri_sid = ProtoField.string("suricata.sid", "SID", FT_INTEGER)
+	local suri_msg = ProtoField.string("suricata.msg", "Message", FT_STRING)
+	suri_proto.fields = {suri_sid, suri_msg}
 	-- register our protocol as a postdissector
 	function suriwire_activate()
 		local suri_alerts = {}
-		local suri_proto = Proto("suricata","Suricata Analysis")
-		local suri_sid = ProtoField.string("suricata.sid", "SID", FT_INTEGER)
-		local suri_msg = ProtoField.string("suricata.msg", "Message", FT_STRING)
-		suri_proto.fields = {suri_sid, suri_msg}
 
 		function suri_proto.dissector(buffer,pinfo,tree)
 		     if not(suri_alerts[pinfo.number] == nil) then
