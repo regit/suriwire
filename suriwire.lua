@@ -46,7 +46,7 @@ if (gui_enabled()) then
 		end
 
 		function suri_proto.init()
-		    local pat = "(%d+):(%d+):(.*)"
+		    local pat = "(%d+):(%d+):0:0:(.*)"
 		    -- read the lines in table 'lines'
 		    for line in io.lines() do
 		      local alert = {}
