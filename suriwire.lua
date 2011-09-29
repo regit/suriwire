@@ -26,22 +26,21 @@
 if (gui_enabled()) then 
 	-- register our protocol as a postdissector
 	function suriwire_activate()
-		suri_alerts = {}
+		local suri_alerts = {}
 		local suri_proto = Proto("suricata","Suricata Analysis")
-		-- create a function to "postdissect" each frame
-		local suri_sid = ProtoField.string("suricata.sid", "SID", FT_STRING)
+		local suri_sid = ProtoField.string("suricata.sid", "SID", FT_INTEGER)
 		local suri_msg = ProtoField.string("suricata.msg", "Message", FT_STRING)
+		suri_proto.fields = {suri_sid, suri_msg}
 
 		function suri_proto.dissector(buffer,pinfo,tree)
-		     for i, alert in ipairs(suri_alerts) do
-			  a = pinfo.number - alert[1]
-			  if (pinfo.number - alert[1] == 0) then
-			     subtree = tree:add(suri_proto, buffer[0])
-			     -- add protocol fields to subtree
-			     subtree:add(suri_msg, "SID: " .. alert[2] .. ": "):append_text(alert[3])
-			     subtree:add_expert_info(PI_MALFORMED, PI_WARN, alert[3])
-			     break
-			  end
+		     if not(suri_alerts[pinfo.number] == nil) then
+		             for i, val in ipairs(suri_alerts[pinfo.number]) do
+				     subtree = tree:add(suri_proto, "SID: "..val['sid'].." ("..val['msg']..")")
+				     -- add protocol fields to subtree
+				     subtree:add(suri_sid, val['sid'])
+				     subtree:add(suri_msg, val['msg'])
+				     subtree:add_expert_info(PI_MALFORMED, PI_WARN, val['msg'])
+			     end
 		     end
 		end
 
@@ -50,22 +49,27 @@ if (gui_enabled()) then
 		    -- read the lines in table 'lines'
 		    for line in io.lines() do
 		      local alert = {}
-		      for id, sid, text in string.gmatch(line, pat) do
-			  table.insert(alert, id)
-			  table.insert(alert, sid)
-			  table.insert(alert, text)
+                      id = 0
+		      for i, sid, text in string.gmatch(line, pat) do
+			  id = tonumber(i)
+                          if suri_alerts[id] == nil then
+				suri_alerts[id] = {}
+			  end
+			  table.insert(suri_alerts[id], {sid = sid, msg = text})
 		      end
-		      table.insert(suri_alerts, alert)
 		    end
 		end
 		function suriwire_register(file)
 	    		io.input(file)
 			register_postdissector(suri_proto)
+			-- seems autoloading is done
 			reload()
 		end
 		-- run suricata
 		-- set input file
 		new_dialog("Choose alert file", suriwire_register, "Choose file")
+		-- debug 1.7 
+		-- suriwire_register("sample.log")
 	end
 
 	function suriwire_page()
@@ -74,5 +78,7 @@ if (gui_enabled()) then
 
 	register_menu("Suricata/Activate", suriwire_activate, MENU_TOOLS_UNSORTED)
 	register_menu("Suricata/Web", suriwire_page, MENU_TOOLS_UNSORTED)
+	-- debug 1.7
+	-- suriwire_activate()
 end
 
