@@ -27,6 +27,8 @@ if (gui_enabled()) then
 	local suri_proto = Proto("suricata","Suricata Analysis")
 	local suri_sid = ProtoField.string("suricata.sid", "SID", FT_INTEGER)
 	local suri_msg = ProtoField.string("suricata.msg", "Message", FT_STRING)
+	local suri_prefs = suri_proto.prefs
+	suri_prefs.alert_file = Pref.string("Alert file", "alert-num.log", "Alert file containing information about pcap") 
 	suri_proto.fields = {suri_sid, suri_msg}
 	-- register our protocol as a postdissector
 	function suriwire_activate()
@@ -60,14 +62,18 @@ if (gui_enabled()) then
 		    end
 		end
 		function suriwire_register(file)
-	    		io.input(file)
+			if file == "" then
+				io.input(suri_prefs.alert_file)
+			else
+				io.input(file)
+			end
 			register_postdissector(suri_proto)
 			-- seems autoloading is done
 			reload()
 		end
 		-- run suricata
 		-- set input file
-		new_dialog("Choose alert file", suriwire_register, "Choose file")
+		new_dialog("Choose alert file", suriwire_register, "Choose file (default:" .. suri_prefs.alert_file..")")
 		-- debug 1.7 
 		-- suriwire_register("sample.log")
 	end
