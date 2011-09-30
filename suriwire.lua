@@ -33,7 +33,6 @@ if (gui_enabled()) then
 	-- register our protocol as a postdissector
 	function suriwire_activate()
 		local suri_alerts = {}
-
 		function suri_proto.dissector(buffer,pinfo,tree)
 		     if not(suri_alerts[pinfo.number] == nil) then
 		             for i, val in ipairs(suri_alerts[pinfo.number]) do
@@ -47,29 +46,40 @@ if (gui_enabled()) then
 		end
 
 		function suri_proto.init()
-		    local pat = "(%d+):(%d+):0:0:(.*)"
-		    -- read the lines in table 'lines'
-		    for line in io.lines() do
-		      local alert = {}
-                      id = 0
-		      for i, sid, text in string.gmatch(line, pat) do
-			  id = tonumber(i)
-                          if suri_alerts[id] == nil then
-				suri_alerts[id] = {}
-			  end
-			  table.insert(suri_alerts[id], {sid = sid, msg = text})
-		      end
+		end
+
+		function suriwire_parser(file)
+                    local id = 0
+		    local s_text = ""
+		    local pat = "(%d+):(%d+):0:0:([^\n]*)"
+		    for s_text in io.lines(file) do
+			i, sid, text = string.match(s_text, pat)
+			id = tonumber(i)
+			if (i) then
+				if suri_alerts[id] == nil then
+					suri_alerts[id] = {}
+				end
+				table.insert(suri_alerts[id], {sid = sid, msg = text})
+			end
 		    end
 		end
 		function suriwire_register(file)
 			if file == "" then
-				io.input(suri_prefs.alert_file)
-			else
-				io.input(file)
+				file = suri_prefs.alert_file
 			end
-			register_postdissector(suri_proto)
-			-- seems autoloading is done
-			reload()
+			local filehandle = io.open(file, "r")
+
+			if not (filehandle == nil) then
+				filehandle:close()
+				-- parse suricata log file
+				suriwire_parser(file)
+				-- register protocol dissector
+				register_postdissector(suri_proto)
+				-- seems autoloading is done
+				reload()
+			else
+				new_dialog("Unable to open '" .. file .. "'. Choose another alert file", suriwire_register, "Choose file (default:" .. suri_prefs.alert_file..")")
+			end
 		end
 		-- run suricata
 		-- set input file
