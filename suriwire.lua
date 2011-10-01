@@ -28,6 +28,7 @@ if (gui_enabled()) then
 	local suri_sid = ProtoField.string("suricata.sid", "SID", FT_INTEGER)
 	local suri_msg = ProtoField.string("suricata.msg", "Message", FT_STRING)
 	local suri_prefs = suri_proto.prefs
+	local suri_running = false
 	suri_prefs.alert_file = Pref.string("Alert file", "alert-num.log",
 					    "Alert file containing information about pcap")
 	suri_proto.fields = {suri_sid, suri_msg}
@@ -54,6 +55,7 @@ if (gui_enabled()) then
 			local id = 0
 			local s_text = ""
 			local pat = "(%d+):(%d+):0:0:([^\n]*)"
+			suri_alerts = {}
 			for s_text in io.lines(file) do
 				i, sid, text = string.match(s_text, pat)
 				id = tonumber(i)
@@ -77,8 +79,10 @@ if (gui_enabled()) then
 				-- parse suricata log file
 				suriwire_parser(file)
 				-- register protocol dissector
-				register_postdissector(suri_proto)
-				-- seems autoloading is done
+				if suri_running == false then
+					register_postdissector(suri_proto)
+					suri_running = true
+				end
 				reload()
 			else
 				new_dialog("Unable to open '" .. file
