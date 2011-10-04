@@ -35,12 +35,15 @@ if (gui_enabled()) then
 	local suri_to_client = ProtoField.string("suricata.to_cient", "Flow is to client", FT_BOOLEAN)
 	local suri_prefs = suri_proto.prefs
 	local suri_running = false
-	suri_prefs.suri_command = Pref.string("Suricata binary", "/usr/bin/suricata",
-					    "Path to suricata binary")
-	suri_prefs.config_file = Pref.string("Suricata configuration", "/etc/suricata/suricata.yaml",
-					    "Alert file containing information about pcap")
-	suri_prefs.alert_file = Pref.string("Alert file", "/var/log/suricata/alert-num.log",
+	-- suri_prefs.suri_command = Pref.string("Suricata binary", "/usr/bin/suricata",
+	--				    "Path to suricata binary")
+	-- suri_prefs.config_file = Pref.string("Suricata configuration", "/etc/suricata/suricata.yaml",
+	--				    "Alert file containing information about pcap")
+	suri_prefs.alert_file = Pref.string("Alert file", "/var/log/suricata/alert-pcapinfo.log",
 					    "Numlog alert file containing information about pcap")
+	-- suri_prefs.copy_alert_file = Pref.bool("Make a copy of alert file", true,
+	--				       "When running suricata, create a copy of alert"
+	--				       .. " file in the directory of the pcap file")
 	suri_proto.fields = {suri_gid, suri_sid, suri_rev, suri_msg, suri_flow, suri_tx_id, suri_to_server, suri_to_client}
 	-- register our protocol as a postdissector
 	function suriwire_activate()
@@ -87,22 +90,31 @@ if (gui_enabled()) then
 			end
 		end
 
-		function suriwire_run(file)
-			local suri_command = suri_prefs.suri_command .. " -c " ..
-					     suri_prefs.config_file .. " -r " ..
-					     file
-			-- TODO Progress dialog
-			suri_return, suri_status = os.execute(suri_command)
-			-- if command is run succesfully we will have a log file
-			if suri_status == 1 then
-				-- TODO Text window with output
-				print("Unable to run command:" .. suri_return)
-			else
-				if suri_prefs.copy_alert_file then
-					io.output(file .. ".log"):write(io.input(suri_prefs.alert_file):read("*all"))
-				end
-			end
-		end
+		-- function suriwire_run()
+		-- 	local file = "myfile.pcap"
+		-- 	local suri_command = suri_prefs.suri_command .. " -c " ..
+		-- 			     suri_prefs.config_file .. " -r " ..
+		-- 			     file
+		-- 	-- TODO Progress dialog
+		-- 	suri_return, suri_status = os.execute(suri_command)
+		-- 	-- if command is run succesfully we will have a log file
+		-- 	if suri_status == 1 then
+		-- 		-- TODO Text window with output
+		-- 		print("Unable to run command:" .. suri_return)
+		-- 	else
+		-- 		if suri_prefs.copy_alert_file then
+		-- 			suri_return, suri_status =
+		-- 				os.execute("cp " .. suri_prefs.alert_file .. " " .. file .. ".log")
+		-- 			if suri_status == 1 then
+		-- 				-- TODO Text window with output
+		-- 				print("Unable to copy alert file:" .. suri_return)
+		-- 				return
+		-- 			end
+		-- 		end
+		-- 		suriwire_parser(file .. ".log")
+		-- 		reload()
+		-- 	end
+		-- end
 
 		function suriwire_register(file)
 			if file == "" then
@@ -141,6 +153,7 @@ if (gui_enabled()) then
 	end
 
 	register_menu("Suricata/Activate", suriwire_activate, MENU_TOOLS_UNSORTED)
+	-- register_menu("Suricata/Run Suricata", suriwire_run, MENU_TOOLS_UNSORTED)
 	register_menu("Suricata/Web", suriwire_page, MENU_TOOLS_UNSORTED)
 	-- debug 1.7
 	-- suriwire_activate()
