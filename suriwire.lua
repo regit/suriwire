@@ -4,6 +4,8 @@
 --
 -- (c) 2011 Eric Leblond <eric@regit.org>
 --
+-- Version 0.1.
+--
 -- Wireshark - Network traffic analyzer
 -- By Gerald Combs <gerald@wireshark.org>
 -- Copyright 1998 Gerald Combs
