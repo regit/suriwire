@@ -51,6 +51,11 @@ if (gui_enabled()) then
 	local suri_http_url = ProtoField.string("suricata.http.url", "HTTP URL", FT_STRING)
 	local suri_http_hostname = ProtoField.string("suricata.http.hostname", "HTTP hostname", FT_STRING)
 	local suri_http_user_agent = ProtoField.string("suricata.http.user_agent", "HTTP user agent", FT_STRING)
+	local suri_http_content_type = ProtoField.string("suricata.http.content_type", "HTTP Content Type", FT_STRING)
+	local suri_http_method = ProtoField.string("suricata.http.method", "HTTP Method", FT_STRING)
+	local suri_http_protocol = ProtoField.string("suricata.http.protocol", "HTTP Protocol", FT_STRING)
+	local suri_http_status = ProtoField.string("suricata.http.status", "HTTP Status", FT_STRING)
+	local suri_http_length = ProtoField.string("suricata.http.length", "HTTP Length", FT_STRING)
 
 	local suri_prefs = suri_proto.prefs
 	local suri_running = false
@@ -66,7 +71,9 @@ if (gui_enabled()) then
 	suri_proto.fields = {suri_gid, suri_sid, suri_rev, suri_msg, suri_tls_subject, suri_tls_issuerdn, suri_tls_fingerprint, suri_tls_version,
 				suri_ssh_client_version, suri_ssh_client_proto, suri_ssh_server_version, suri_ssh_server_proto,
 				suri_fileinfo_filename, suri_fileinfo_magic, suri_fileinfo_md5, suri_fileinfo_size, suri_fileinfo_stored, 
-				suri_http_url, suri_http_hostname, suri_http_user_agent }
+				suri_http_url, suri_http_hostname, suri_http_user_agent,
+				suri_http_content_type, suri_http_method, suri_http_protocol, suri_http_status, suri_http_length
+				}
 	-- register our protocol as a postdissector
 	function suriwire_activate()
 		local suri_alerts = {}
@@ -114,7 +121,24 @@ if (gui_enabled()) then
 						-- add protocol fields to subtree
 						subtree:add(suri_http_url, val['http_url'])
 						subtree:add(suri_http_hostname, val['http_hostname'])
-						subtree:add(suri_http_user_agent, val['http_user_agent'])
+						if val['http_user_agent'] then
+							subtree:add(suri_http_user_agent, val['http_user_agent'])
+						end
+						if val['http_content_type'] then
+							subtree:add(suri_http_content_type, val['http_content_type'])
+						end
+						if val['http_method'] then
+							subtree:add(suri_http_method, val['http_method'])
+						end
+						if val['http_protocol'] then
+							subtree:add(suri_http_protocol, val['http_protocol'])
+						end
+						if val['http_status'] then
+							subtree:add(suri_http_status, val['http_status'])
+						end
+						if val['http_length'] then
+							subtree:add(suri_http_length, val['http_length'])
+						end
 					end
 			     end
 		     end
@@ -178,7 +202,12 @@ if (gui_enabled()) then
 							{
 								http_url = event["http"]["url"],
 								http_hostname = event["http"]["hostname"],
-								http_user_agent = event["http"]["user_agent"],
+								http_user_agent = event["http"]["http_user_agent"],
+								http_content_type = event["http"]["http_content_type"],
+								http_method = event["http"]["http_method"],
+								http_protocol = event["http"]["protocol"],
+								http_status = event["http"]["status"],
+								http_length = event["http"]["length"],
 							})
 					end
 				end
