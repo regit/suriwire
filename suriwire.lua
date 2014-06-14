@@ -41,6 +41,17 @@ if (gui_enabled()) then
 	local suri_ssh_client_proto = ProtoField.string("suricata.ssh.client.proto", "SSH client protocol", FT_STRING)
 	local suri_ssh_server_version = ProtoField.string("suricata.ssh.server.version", "SSH server version", FT_STRING)
 	local suri_ssh_server_proto = ProtoField.string("suricata.ssh.server.proto", "SSH server protocol", FT_STRING)
+
+	local suri_fileinfo_filename = ProtoField.string("suricata.fileinfo.filename", "Fileinfo filename", FT_STRING)
+	local suri_fileinfo_magic = ProtoField.string("suricata.fileinfo.magic", "Fileinfo magic", FT_STRING)
+	local suri_fileinfo_md5 = ProtoField.string("suricata.fileinfo.md5", "Fileinfo md5", FT_STRING)
+	local suri_fileinfo_size = ProtoField.string("suricata.fileinfo.size", "Fileinfo size", FT_INTEGER)
+	local suri_fileinfo_stored = ProtoField.string("suricata.fileinfo.stored", "Fileinfo stored", FT_STRING)
+
+	local suri_http_url = ProtoField.string("suricata.http.url", "HTTP URL", FT_STRING)
+	local suri_http_hostname = ProtoField.string("suricata.http.hostname", "HTTP hostname", FT_STRING)
+	local suri_http_user_agent = ProtoField.string("suricata.http.user_agent", "HTTP user agent", FT_STRING)
+
 	local suri_prefs = suri_proto.prefs
 	local suri_running = false
 	-- suri_prefs.suri_command = Pref.string("Suricata binary", "/usr/bin/suricata",
@@ -53,7 +64,9 @@ if (gui_enabled()) then
 	--				       "When running suricata, create a copy of alert"
 	--				       .. " file in the directory of the pcap file")
 	suri_proto.fields = {suri_gid, suri_sid, suri_rev, suri_msg, suri_tls_subject, suri_tls_issuerdn, suri_tls_fingerprint, suri_tls_version,
-				suri_ssh_client_version, suri_ssh_client_proto, suri_ssh_server_version, suri_ssh_server_proto}
+				suri_ssh_client_version, suri_ssh_client_proto, suri_ssh_server_version, suri_ssh_server_proto,
+				suri_fileinfo_filename, suri_fileinfo_magic, suri_fileinfo_md5, suri_fileinfo_size, suri_fileinfo_stored, 
+				suri_http_url, suri_http_hostname, suri_http_user_agent }
 	-- register our protocol as a postdissector
 	function suriwire_activate()
 		local suri_alerts = {}
@@ -85,7 +98,24 @@ if (gui_enabled()) then
 						subtree:add(suri_ssh_server_version, val['ssh_server_version'])
 						subtree:add(suri_ssh_server_proto, val['ssh_server_proto'])
 						subtree:add_expert_info(PI_REASSEMBLE, PI_NOTE, 'SSH Info')
-				     end
+					elseif val['fileinfo_filename'] then
+						subtree = tree:add(suri_proto, "Suricata File Info")
+						-- add protocol fields to subtree
+						subtree:add(suri_fileinfo_filename, val['fileinfo_filename'])
+						subtree:add(suri_fileinfo_magic, val['fileinfo_magic'])
+						if val['fileinfo_md5'] then
+							subtree:add(suri_fileinfo_md5, val['fileinfo_md5'])
+						end
+						subtree:add(suri_fileinfo_size, val['fileinfo_size'])
+						subtree:add(suri_fileinfo_stored, val['fileinfo_stored'])
+					end
+					if val['http_url'] then
+						subtree = tree:add(suri_proto, "Suricata HTTP Info")
+						-- add protocol fields to subtree
+						subtree:add(suri_http_url, val['http_url'])
+						subtree:add(suri_http_hostname, val['http_hostname'])
+						subtree:add(suri_http_user_agent, val['http_user_agent'])
+					end
 			     end
 		     end
 		end
@@ -125,6 +155,30 @@ if (gui_enabled()) then
 							ssh_client_proto = event["ssh"]["client"]["proto_version"],
 							ssh_server_version = event["ssh"]["server"]["software_version"],
 							ssh_server_proto = event["ssh"]["server"]["proto_version"],
+							})
+					elseif event["event_type"] == "fileinfo" then
+						if suri_alerts[id] == nil then
+							suri_alerts[id] = {}
+						end
+						table.insert(suri_alerts[id],
+							{ fileinfo_filename = event["fileinfo"]["filename"],
+							  fileinfo_magic = event["fileinfo"]["magic"],
+							  fileinfo_md5 = event["fileinfo"]["md5"],
+							  fileinfo_size = tonumber(event["fileinfo"]["size"]),
+							  fileinfo_stored = tostring(event["fileinfo"]["stored"]),
+							  http_url = event["http"]["url"],
+							  http_hostname = event["http"]["hostname"],
+							  http_user_agent = event["http"]["http_user_agent"],
+							})
+					elseif event["event_type"] == "http" then
+						if suri_alerts[id] == nil then
+							suri_alerts[id] = {}
+						end
+						table.insert(suri_alerts[id],
+							{
+								http_url = event["http"]["url"],
+								http_hostname = event["http"]["hostname"],
+								http_user_agent = event["http"]["user_agent"],
 							})
 					end
 				end
