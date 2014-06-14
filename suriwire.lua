@@ -35,6 +35,10 @@ if (gui_enabled()) then
 	--local suri_flow = ProtoField.string("suricata.flow", "Flow flag", FT_BOOLEAN)
 	--local suri_to_server = ProtoField.string("suricata.to_server", "Flow is to server", FT_BOOLEAN)
 	--local suri_to_client = ProtoField.string("suricata.to_client", "Flow is to client", FT_BOOLEAN)
+	local suri_tls_subject = ProtoField.string("suricata.tls.subject", "TLS subject", FT_STRING)
+	local suri_tls_issuerdn = ProtoField.string("suricata.tls.issuerdn", "TLS issuer DN", FT_STRING)
+	local suri_tls_fingerprint = ProtoField.string("suricata.tls.fingerprint", "TLS fingerprint", FT_STRING)
+	local suri_tls_version = ProtoField.string("suricata.tls.version", "TLS version", FT_STRING)
 	local suri_prefs = suri_proto.prefs
 	local suri_running = false
 	-- suri_prefs.suri_command = Pref.string("Suricata binary", "/usr/bin/suricata",
@@ -46,24 +50,31 @@ if (gui_enabled()) then
 	-- suri_prefs.copy_alert_file = Pref.bool("Make a copy of alert file", true,
 	--				       "When running suricata, create a copy of alert"
 	--				       .. " file in the directory of the pcap file")
-	suri_proto.fields = {suri_gid, suri_sid, suri_rev, suri_msg, suri_flow, suri_to_server, suri_to_client}
+	suri_proto.fields = {suri_gid, suri_sid, suri_rev, suri_msg, suri_tls_subject, suri_tls_issuerdn, suri_tls_fingerprint, suri_tls_version}
 	-- register our protocol as a postdissector
 	function suriwire_activate()
 		local suri_alerts = {}
 		function suri_proto.dissector(buffer,pinfo,tree)
-		     if not(suri_alerts[pinfo.number] == nil) then
-		             for i, val in ipairs(suri_alerts[pinfo.number]) do
-				     subtree = tree:add(suri_proto,
-							"SID: "..val['sid'].." ("..val['msg']..")")
-				     -- add protocol fields to subtree
-				     subtree:add(suri_gid, val['gid'])
-				     subtree:add(suri_sid, val['sid'])
-				     subtree:add(suri_rev, val['rev'])
-				     subtree:add(suri_msg, val['msg'])
-				     --subtree:add(suri_flow, val['flow'])
-				     --subtree:add(suri_to_client, val['to_client'])
-				     --subtree:add(suri_to_server, val['to_server'])
-				     subtree:add_expert_info(PI_MALFORMED, PI_WARN, val['msg'])
+			if not(suri_alerts[pinfo.number] == nil) then
+				for i, val in ipairs(suri_alerts[pinfo.number]) do
+					if val['sid'] then
+						subtree = tree:add(suri_proto,
+								"SID: "..val['sid'].." ("..val['msg']..")")
+						-- add protocol fields to subtree
+						subtree:add(suri_gid, val['gid'])
+						subtree:add(suri_sid, val['sid'])
+						subtree:add(suri_rev, val['rev'])
+						subtree:add(suri_msg, val['msg'])
+						subtree:add_expert_info(PI_MALFORMED, PI_WARN, val['msg'])
+					elseif val['tls_subject'] then
+						subtree = tree:add(suri_proto, "TLS Info")
+						-- add protocol fields to subtree
+						subtree:add(suri_tls_subject, val['tls_subject'])
+						subtree:add(suri_tls_issuerdn, val['tls_issuerdn'])
+						subtree:add(suri_tls_fingerprint, val['tls_fingerprint'])
+						subtree:add(suri_tls_version, val['tls_version'])
+						subtree:add_expert_info(PI_REASSEMBLE, PI_NOTE, 'TLS Info')
+				     end
 			     end
 		     end
 		end
@@ -98,16 +109,23 @@ if (gui_enabled()) then
 			suri_alerts = {}
 			for s_text in io.lines(file) do
 				event = json.decode(s_text)
-				if event["event_type"] == "alert" then
-					id = event["pcap_cnt"]
-					if not (id == nil) then
-						print (id)
+				id = event["pcap_cnt"]
+				if not (id == nil) then
+					if event["event_type"] == "alert" then
 						if suri_alerts[id] == nil then
 							suri_alerts[id] = {}
 						end
 						table.insert(suri_alerts[id],
 							{gid = tonumber(event["alert"]["gid"]), sid = tonumber(event["alert"]["signature_id"]),
 							rev = tonumber(event["alert"]["rev"]), msg = event["alert"]["signature"]})
+					end
+					if event["event_type"] == "tls" then
+						if suri_alerts[id] == nil then
+							suri_alerts[id] = {}
+						end
+						table.insert(suri_alerts[id],
+							{ tls_subject = event["tls"]["subject"], tls_issuerdn = event["tls"]["issuerdn"],
+							tls_fingerprint = event["tls"]["fingerprint"], tls_version = event["tls"]["version"]})
 					end
 				end
 			end
