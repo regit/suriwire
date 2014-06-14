@@ -4,7 +4,7 @@
 --
 -- (c) 2011,2014 Eric Leblond <eric@regit.org>
 --
--- Version 0.1.
+-- Version 0.2.
 --
 -- Wireshark - Network traffic analyzer
 -- By Gerald Combs <gerald@wireshark.org>
