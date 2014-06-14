@@ -1,8 +1,8 @@
 -- suriwire
--- A wireshark plugin to integrate suricata alerts in wireshark
+-- A wireshark plugin to integrate suricata alerts and logs in wireshark
 -- pcap output.
 --
--- (c) 2011 Eric Leblond <eric@regit.org>
+-- (c) 2011,2014 Eric Leblond <eric@regit.org>
 --
 -- Version 0.1.
 --
