@@ -32,9 +32,6 @@ if (gui_enabled()) then
 	local suri_sid = ProtoField.string("suricata.sid", "SID", FT_INTEGER)
 	local suri_rev = ProtoField.string("suricata.rev", "Rev", FT_INTEGER)
 	local suri_msg = ProtoField.string("suricata.msg", "Message", FT_STRING)
-	--local suri_flow = ProtoField.string("suricata.flow", "Flow flag", FT_BOOLEAN)
-	--local suri_to_server = ProtoField.string("suricata.to_server", "Flow is to server", FT_BOOLEAN)
-	--local suri_to_client = ProtoField.string("suricata.to_client", "Flow is to client", FT_BOOLEAN)
 	local suri_tls_subject = ProtoField.string("suricata.tls.subject", "TLS subject", FT_STRING)
 	local suri_tls_issuerdn = ProtoField.string("suricata.tls.issuerdn", "TLS issuer DN", FT_STRING)
 	local suri_tls_fingerprint = ProtoField.string("suricata.tls.fingerprint", "TLS fingerprint", FT_STRING)
@@ -81,26 +78,6 @@ if (gui_enabled()) then
 
 		function suri_proto.init()
 		end
-
-		-- function suriwire_parser(file)
-		-- 	local id = 0
-		-- 	local s_text = ""
-		-- 	local pat = "(%d+):(%d+):(%d+):(%d+):(%d):(%d):(%d):0:0:([^\n]*)"
-		-- 	suri_alerts = {}
-		-- 	for s_text in io.lines(file) do
-		-- 		i, gid, sid, rev, flow, to_server, to_client, text = string.match(s_text, pat)
-		-- 		id = tonumber(i)
-		-- 		if (i) then
-		-- 			if suri_alerts[id] == nil then
-		-- 				suri_alerts[id] = {}
-		-- 			end
-		-- 		table.insert(suri_alerts[id],
-		-- 			     {gid = tonumber(gid), sid = tonumber(sid),
-		-- 			      rev = tonumber(rev), flow = flow, to_server = to_server,
-		-- 			      to_client = to_client, tx_id = tonumber(tx_id), msg = text})
-		-- 		end
-		-- 	end
-		-- end
 
 		function suriwire_parser(file)
 			local event
