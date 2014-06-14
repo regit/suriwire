@@ -6,7 +6,12 @@ Introduction
 ============
 
 Suriwire is a plugin for wireshark that allow you to display
-suricata alert as element of the protocol dissection.
+suricata alert and protocol information as element of the
+protocol dissection.
+
+.. image:: https://github.com/regit/suriwire/raw/master/doc/suriwire.png
+    :alt: wireshark screenshot with suriwire generated info
+    :align: center
 
 Installation
 ============
