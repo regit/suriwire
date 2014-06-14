@@ -18,7 +18,7 @@ Usage
 =====
 
 Run externally suricata on the pcap file you study to create a
-suitable alert file. You need to use the `pcap-info` output format.
+suitable alert file. You need to use the `EVE` output format.
 
 In wireshark, go to `Tools->Wireshark->Activate` and enter the
 name of the alert file. You will now find information about the
@@ -31,4 +31,4 @@ You can also filter on the `suricata` protocol. The protocol has
 fields like `suricata.sid` and `suricata.msg` which can be used
 in filter.
 
-More information on http://home.regit.org/software/suriwire.
+More information on https://home.regit.org/software/suriwire.
