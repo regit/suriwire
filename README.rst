@@ -35,10 +35,18 @@ Usage
 
 Run externally suricata on the pcap file you study to create a
 suitable alert file. You need to use the ``EVE`` output format.
+To specify a directory to output files to, you can use the ``-l``
+flag in suricata ::
 
-In wireshark, go to ``Tools->Suricata->Activate`` and enter the
-name of the EVE file. You will now find information about the
-alerts and protocol events:
+ suricata -r sample.pcap -l log/
+
+Then you will be able to use the ``log/eve.json`` file.
+
+In wireshark, open the pcap file and go to ``Tools->Suricata->Activate``.
+Then enter the name of the EVE file. This will parse again the file adding
+all Suricata generated information.
+
+You will now find information about the alerts and other events:
 
 * In the detail of a packet under ``Suricata analysis`` element
 * In ``Analyse->Expert Info Composite``
@@ -46,5 +54,8 @@ alerts and protocol events:
 You can also filter on the ``suricata`` protocol. The protocol has
 fields like ``suricata.alert.sid`` and ``suricata.tls.subject`` which can be used
 in filter.
+
+If you reuse the same ``eve.json`` file, you can set the default path in the
+protocol preferences inside wireshark.
 
 More information on https://home.regit.org/software/suriwire.
