@@ -62,7 +62,7 @@ if (gui_enabled()) then
 				for i, val in ipairs(suri_alerts[pinfo.number]) do
 					if val['sid'] then
 						subtree = tree:add(suri_proto,
-								"SID: "..val['sid'].." ("..val['msg']..")")
+								"Suricata alert: "..val['sid'].." ("..val['msg']..")")
 						-- add protocol fields to subtree
 						subtree:add(suri_gid, val['gid'])
 						subtree:add(suri_sid, val['sid'])
@@ -70,7 +70,7 @@ if (gui_enabled()) then
 						subtree:add(suri_msg, val['msg'])
 						subtree:add_expert_info(PI_MALFORMED, PI_WARN, val['msg'])
 					elseif val['tls_subject'] then
-						subtree = tree:add(suri_proto, "TLS Info")
+						subtree = tree:add(suri_proto, "Suricata TLS Info")
 						-- add protocol fields to subtree
 						subtree:add(suri_tls_subject, val['tls_subject'])
 						subtree:add(suri_tls_issuerdn, val['tls_issuerdn'])
@@ -78,7 +78,7 @@ if (gui_enabled()) then
 						subtree:add(suri_tls_version, val['tls_version'])
 						subtree:add_expert_info(PI_REASSEMBLE, PI_NOTE, 'TLS Info')
 					elseif val['ssh_client_version'] then
-						subtree = tree:add(suri_proto, "SSH Info")
+						subtree = tree:add(suri_proto, "Suricata SSH Info")
 						-- add protocol fields to subtree
 						subtree:add(suri_ssh_client_version, val['ssh_client_version'])
 						subtree:add(suri_ssh_client_proto, val['ssh_client_proto'])
