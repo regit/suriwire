@@ -59,6 +59,9 @@ if (gui_enabled()) then
 
 	local suri_prefs = suri_proto.prefs
 	local suri_running = false
+
+	local suri_alerts = {}
+
 	-- suri_prefs.suri_command = Pref.string("Suricata binary", "/usr/bin/suricata",
 	--				    "Path to suricata binary")
 	-- suri_prefs.config_file = Pref.string("Suricata configuration", "/etc/suricata/suricata.yaml",
@@ -74,79 +77,80 @@ if (gui_enabled()) then
 				suri_http_url, suri_http_hostname, suri_http_user_agent,
 				suri_http_content_type, suri_http_method, suri_http_protocol, suri_http_status, suri_http_length
 				}
+
+
+	function suri_proto.dissector(buffer,pinfo,tree)
+		if not(suri_alerts[pinfo.number] == nil) then
+			for i, val in ipairs(suri_alerts[pinfo.number]) do
+				if val['sid'] then
+					subtree = tree:add(suri_proto,
+							"Suricata alert: "..val['sid'].." ("..val['msg']..")")
+					-- add protocol fields to subtree
+					subtree:add(suri_gid, val['gid'])
+					subtree:add(suri_sid, val['sid'])
+					subtree:add(suri_rev, val['rev'])
+					subtree:add(suri_msg, val['msg'])
+					subtree:add_expert_info(PI_MALFORMED, PI_WARN, val['msg'])
+				elseif val['tls_subject'] then
+					subtree = tree:add(suri_proto, "Suricata TLS Info")
+					-- add protocol fields to subtree
+					subtree:add(suri_tls_subject, val['tls_subject'])
+					subtree:add(suri_tls_issuerdn, val['tls_issuerdn'])
+					subtree:add(suri_tls_fingerprint, val['tls_fingerprint'])
+					subtree:add(suri_tls_version, val['tls_version'])
+					subtree:add_expert_info(PI_REASSEMBLE, PI_NOTE, 'TLS Info')
+				elseif val['ssh_client_version'] then
+					subtree = tree:add(suri_proto, "Suricata SSH Info")
+					-- add protocol fields to subtree
+					subtree:add(suri_ssh_client_version, val['ssh_client_version'])
+					subtree:add(suri_ssh_client_proto, val['ssh_client_proto'])
+					subtree:add(suri_ssh_server_version, val['ssh_server_version'])
+					subtree:add(suri_ssh_server_proto, val['ssh_server_proto'])
+					subtree:add_expert_info(PI_REASSEMBLE, PI_NOTE, 'SSH Info')
+				elseif val['fileinfo_filename'] then
+					subtree = tree:add(suri_proto, "Suricata File Info")
+					-- add protocol fields to subtree
+					subtree:add(suri_fileinfo_filename, val['fileinfo_filename'])
+					subtree:add(suri_fileinfo_magic, val['fileinfo_magic'])
+					if val['fileinfo_md5'] then
+						subtree:add(suri_fileinfo_md5, val['fileinfo_md5'])
+					end
+					subtree:add(suri_fileinfo_size, val['fileinfo_size'])
+					subtree:add(suri_fileinfo_stored, val['fileinfo_stored'])
+				end
+				if val['http_url'] then
+					subtree = tree:add(suri_proto, "Suricata HTTP Info")
+					-- add protocol fields to subtree
+					subtree:add(suri_http_url, val['http_url'])
+					subtree:add(suri_http_hostname, val['http_hostname'])
+					if val['http_user_agent'] then
+						subtree:add(suri_http_user_agent, val['http_user_agent'])
+					end
+					if val['http_content_type'] then
+						subtree:add(suri_http_content_type, val['http_content_type'])
+					end
+					if val['http_method'] then
+						subtree:add(suri_http_method, val['http_method'])
+					end
+					if val['http_protocol'] then
+						subtree:add(suri_http_protocol, val['http_protocol'])
+					end
+					if val['http_status'] then
+						subtree:add(suri_http_status, val['http_status'])
+					end
+					if val['http_length'] then
+						subtree:add(suri_http_length, val['http_length'])
+					end
+				end
+		     end
+	     end
+	end
+
+	function suri_proto.init()
+	end
+
 	-- register our protocol as a postdissector
 	function suriwire_activate()
-		local suri_alerts = {}
-		function suri_proto.dissector(buffer,pinfo,tree)
-			if not(suri_alerts[pinfo.number] == nil) then
-				for i, val in ipairs(suri_alerts[pinfo.number]) do
-					if val['sid'] then
-						subtree = tree:add(suri_proto,
-								"Suricata alert: "..val['sid'].." ("..val['msg']..")")
-						-- add protocol fields to subtree
-						subtree:add(suri_gid, val['gid'])
-						subtree:add(suri_sid, val['sid'])
-						subtree:add(suri_rev, val['rev'])
-						subtree:add(suri_msg, val['msg'])
-						subtree:add_expert_info(PI_MALFORMED, PI_WARN, val['msg'])
-					elseif val['tls_subject'] then
-						subtree = tree:add(suri_proto, "Suricata TLS Info")
-						-- add protocol fields to subtree
-						subtree:add(suri_tls_subject, val['tls_subject'])
-						subtree:add(suri_tls_issuerdn, val['tls_issuerdn'])
-						subtree:add(suri_tls_fingerprint, val['tls_fingerprint'])
-						subtree:add(suri_tls_version, val['tls_version'])
-						subtree:add_expert_info(PI_REASSEMBLE, PI_NOTE, 'TLS Info')
-					elseif val['ssh_client_version'] then
-						subtree = tree:add(suri_proto, "Suricata SSH Info")
-						-- add protocol fields to subtree
-						subtree:add(suri_ssh_client_version, val['ssh_client_version'])
-						subtree:add(suri_ssh_client_proto, val['ssh_client_proto'])
-						subtree:add(suri_ssh_server_version, val['ssh_server_version'])
-						subtree:add(suri_ssh_server_proto, val['ssh_server_proto'])
-						subtree:add_expert_info(PI_REASSEMBLE, PI_NOTE, 'SSH Info')
-					elseif val['fileinfo_filename'] then
-						subtree = tree:add(suri_proto, "Suricata File Info")
-						-- add protocol fields to subtree
-						subtree:add(suri_fileinfo_filename, val['fileinfo_filename'])
-						subtree:add(suri_fileinfo_magic, val['fileinfo_magic'])
-						if val['fileinfo_md5'] then
-							subtree:add(suri_fileinfo_md5, val['fileinfo_md5'])
-						end
-						subtree:add(suri_fileinfo_size, val['fileinfo_size'])
-						subtree:add(suri_fileinfo_stored, val['fileinfo_stored'])
-					end
-					if val['http_url'] then
-						subtree = tree:add(suri_proto, "Suricata HTTP Info")
-						-- add protocol fields to subtree
-						subtree:add(suri_http_url, val['http_url'])
-						subtree:add(suri_http_hostname, val['http_hostname'])
-						if val['http_user_agent'] then
-							subtree:add(suri_http_user_agent, val['http_user_agent'])
-						end
-						if val['http_content_type'] then
-							subtree:add(suri_http_content_type, val['http_content_type'])
-						end
-						if val['http_method'] then
-							subtree:add(suri_http_method, val['http_method'])
-						end
-						if val['http_protocol'] then
-							subtree:add(suri_http_protocol, val['http_protocol'])
-						end
-						if val['http_status'] then
-							subtree:add(suri_http_status, val['http_status'])
-						end
-						if val['http_length'] then
-							subtree:add(suri_http_length, val['http_length'])
-						end
-					end
-			     end
-		     end
-		end
-
-		function suri_proto.init()
-		end
-
 		function suriwire_parser(file)
 			local event
 			local id = 0
