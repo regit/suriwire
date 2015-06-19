@@ -150,7 +150,7 @@ if (gui_enabled()) then
 	end
 
 	-- register our protocol as a postdissector
-	function suriwire_activate()
+	function suriwire_activate(eve_file)
 		function suriwire_parser(file)
 			local event
 			local id = 0
@@ -269,11 +269,13 @@ if (gui_enabled()) then
 		end
 		-- run suricata
 		-- set input file
-		new_dialog("Choose alert file",
-			   suriwire_register,
-			   "Choose file (default:" .. suri_prefs.alert_file..")")
-		-- debug 1.7 
-		-- suriwire_register("sample.log")
+		if eve_file then
+			suriwire_register(eve_file)
+		else
+			new_dialog("Choose alert file",
+			           suriwire_register,
+			           "Choose file (default:" .. suri_prefs.alert_file..")")
+		end
 	end
 
 	function suriwire_page()
@@ -283,6 +285,9 @@ if (gui_enabled()) then
 	register_menu("Suricata/Activate", suriwire_activate, MENU_TOOLS_UNSORTED)
 	-- register_menu("Suricata/Run Suricata", suriwire_run, MENU_TOOLS_UNSORTED)
 	register_menu("Suricata/Web", suriwire_page, MENU_TOOLS_UNSORTED)
-	-- debug 1.7
-	-- suriwire_activate()
+	-- activate on startup if SURIWIRE_EVE_FILE env variable is set
+	local eve_file = os.getenv("SURIWIRE_EVE_FILE")
+	if eve_file then
+		suriwire_activate(eve_file)
+	end
 end
