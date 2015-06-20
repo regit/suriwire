@@ -46,6 +46,11 @@ In wireshark, open the pcap file and go to ``Tools->Suricata->Activate``.
 Then enter the name of the EVE file. This will parse again the file adding
 all Suricata generated information.
 
+You can also indicate which EVE file to parse at start by running something
+like: ::
+
+ SURIWIRE_EVE_FILE=log2/eve.json wireshark sample.pcap
+
 You will now find information about the alerts and other events:
 
 * In the detail of a packet under ``Suricata analysis`` element
