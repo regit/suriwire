@@ -59,6 +59,11 @@ if (gui_enabled()) then
 	local suri_http_status = ProtoField.string("suricata.http.status", "HTTP Status", FT_STRING)
 	local suri_http_length = ProtoField.string("suricata.http.length", "HTTP Length", FT_STRING)
 
+	local suri_smb_command = ProtoField.string("suricata.smb.command", "SMB Command", FT_STRING)
+	local suri_smb_filename = ProtoField.string("suricata.smb.filename", "SMB Filename", FT_STRING)
+	local suri_smb_share = ProtoField.string("suricata.smb.share", "SMB Share", FT_STRING)
+	local suri_smb_status = ProtoField.string("suricata.smb.status", "SMB Status", FT_STRING)
+
 	local suri_prefs = suri_proto.prefs
 	local suri_running = false
 
@@ -78,7 +83,8 @@ if (gui_enabled()) then
 				suri_fileinfo_filename, suri_fileinfo_magic, suri_fileinfo_md5, suri_fileinfo_sha1, suri_fileinfo_sha256,
 				suri_fileinfo_size, suri_fileinfo_stored, 
 				suri_http_url, suri_http_hostname, suri_http_user_agent,
-				suri_http_content_type, suri_http_method, suri_http_protocol, suri_http_status, suri_http_length
+				suri_http_content_type, suri_http_method, suri_http_protocol, suri_http_status, suri_http_length,
+				suri_smb_command, suri_smb_filename, suri_smb_share, suri_smb_status
 				}
 
 
@@ -155,6 +161,19 @@ if (gui_enabled()) then
 						subtree:add(suri_http_length, val['http_length'])
 					end
 				end
+				if val['smb_command'] then
+					subtree = tree:add(suri_proto, "Suricata SMB Info")
+					subtree:add(suri_smb_command, val['smb_command'])
+					if val['smb_filename'] then
+						subtree:add(suri_smb_filename, val['smb_filename'])
+					end
+					if val['smb_share'] then
+						subtree:add(suri_smb_share, val['smb_share'])
+					end
+					if val['smb_status'] then
+						subtree:add(suri_smb_status, val['smb_status'])
+					end
+				end
 		     end
 	     end
 	end
@@ -224,6 +243,17 @@ if (gui_enabled()) then
 								http_protocol = event["http"]["protocol"],
 								http_status = event["http"]["status"],
 								http_length = event["http"]["length"],
+							})
+					elseif event["event_type"] == "smb" then
+						if suri_alerts[id] == nil then
+							suri_alerts[id] = {}
+						end
+						table.insert(suri_alerts[id],
+							{
+								smb_command = event["smb"]["command"],
+								smb_filename = event["smb"]["filename"],
+								smb_share = event["smb"]["share"],
+								smb_status = event["smb"]["status"],
 							})
 					end
 				end
