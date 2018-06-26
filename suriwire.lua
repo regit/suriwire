@@ -205,11 +205,10 @@ if (gui_enabled()) then
 							{ fileinfo_filename = event["fileinfo"]["filename"],
 							  fileinfo_magic = event["fileinfo"]["magic"],
 							  fileinfo_md5 = event["fileinfo"]["md5"],
+							  fileinfo_sha1 = event["fileinfo"]["sha1"],
+							  fileinfo_sha256 = event["fileinfo"]["sha256"],
 							  fileinfo_size = tonumber(event["fileinfo"]["size"]),
 							  fileinfo_stored = tostring(event["fileinfo"]["stored"]),
-							  http_url = event["http"]["url"],
-							  http_hostname = event["http"]["hostname"],
-							  http_user_agent = event["http"]["http_user_agent"],
 							})
 					elseif event["event_type"] == "http" then
 						if suri_alerts[id] == nil then
