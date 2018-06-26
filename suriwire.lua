@@ -127,7 +127,7 @@ if (gui_enabled()) then
 					subtree:add(suri_fileinfo_size, val['fileinfo_size'])
 					if val['fileinfo_stored'] then
 						subtree:add(suri_fileinfo_stored, val['fileinfo_stored'])
-					fi
+					end
 				end
 				if val['http_url'] then
 					subtree = tree:add(suri_proto, "Suricata HTTP Info")
