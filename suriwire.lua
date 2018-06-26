@@ -114,7 +114,9 @@ if (gui_enabled()) then
 					subtree = tree:add(suri_proto, "Suricata File Info")
 					-- add protocol fields to subtree
 					subtree:add(suri_fileinfo_filename, val['fileinfo_filename'])
-					subtree:add(suri_fileinfo_magic, val['fileinfo_magic'])
+					if val['fileinfo_magic'] then
+						subtree:add(suri_fileinfo_magic, val['fileinfo_magic'])
+					end
 					if val['fileinfo_md5'] then
 						subtree:add(suri_fileinfo_md5, val['fileinfo_md5'])
 					end
