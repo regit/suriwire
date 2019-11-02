@@ -2,7 +2,7 @@
 -- A wireshark plugin to integrate suricata alerts and logs in wireshark
 -- pcap output.
 --
--- (c) 2011,2014 Eric Leblond <eric@regit.org>
+-- (c) 2011-2019 Eric Leblond <eric@regit.org>
 --
 -- Version 0.2.
 --
@@ -24,7 +24,11 @@
 -- along with this program; if not, write to the Free Software
 -- Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-local json = require("cjson")
+
+local ok, json = pcall(require, "cjson")
+if not ok then
+	json = require("dkson")
+end
 
 if (gui_enabled()) then 
 	local suri_proto = Proto("suricata", "Suricata Analysis")
