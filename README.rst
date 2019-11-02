@@ -20,6 +20,7 @@ Suriwire has parsing for the following events:
 * fileinfo
 * TLS
 * SSH
+* SMB
 
 For example, the preceding screenshot shows how it is possible to search for
 TLS session where the subject of the certificate matches a certain string.
