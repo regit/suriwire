@@ -27,7 +27,7 @@
 
 local ok, json = pcall(require, "cjson")
 if not ok then
-	json = require("dkson")
+	json = require("dkjson")
 end
 
 if (gui_enabled()) then 
