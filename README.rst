@@ -29,7 +29,8 @@ Installation
 ============
 
 Copy or link suriwire.lua to your wireshark plugin directory. For a user,
-this is ``~/.wireshark/plugins/``.
+this is ``~/.local/lib/wireshark/plugins``  (or ``~/.wireshark/plugins/`` on
+older systems).
 
 Suriwire depends on `cjson` JSON library with a fallback on `dkjson` library.
 
