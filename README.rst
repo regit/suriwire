@@ -28,11 +28,41 @@ TLS session where the subject of the certificate matches a certain string.
 Installation
 ============
 
-Copy or link suriwire.lua to your wireshark plugin directory. For a user,
-this is ``~/.local/lib/wireshark/plugins``  (or ``~/.wireshark/plugins/`` on
-older systems).
+Suriwire needs a wireshark built with Lua support and a Lua JSON library.
 
-Suriwire depends on `cjson` JSON library with a fallback on `dkjson` library.
+Plugin
+------
+
+Copy or link ``suriwire.lua`` to your personal Lua plugins directory: ::
+
+ mkdir -p ~/.local/lib/wireshark/plugins
+ ln -s $PWD/suriwire.lua ~/.local/lib/wireshark/plugins/
+
+The directory is ``~/.local/lib/wireshark/plugins`` on Linux and macOS and
+``%APPDATA%\Wireshark\plugins`` on Windows. The exact path used by your
+installation is listed as ``Personal Lua Plugins`` in
+``Help->About Wireshark->Folders`` (or in the output of ``tshark -G folders``).
+
+JSON library
+------------
+
+Suriwire uses the ``cjson`` library with a fallback on ``dkjson``. The library
+must be visible from the Lua interpreter embedded in wireshark, so it has to
+match its Lua version (5.3 or 5.4 since wireshark 4.4, 5.1 or 5.2 before,
+see ``Help->About Wireshark``). If none is found, wireshark displays a
+``module 'dkjson' not found`` error at startup.
+
+The simplest method, which works on all systems, is to copy ``dkjson.lua``
+(a single pure Lua file available from http://dkolf.de/dkjson-lua/) next to
+``suriwire.lua`` in the plugins directory.
+
+Alternatively, install the library with your distribution packages
+(``lua-cjson`` or ``lua-dkjson``) or with luarocks. If it ends up in a place
+which is not in the search path of wireshark, use the standard ``LUA_PATH``
+(for ``dkjson``) or ``LUA_CPATH`` (for ``cjson``) environment variables: ::
+
+ LUA_PATH="/path/to/share/lua/5.4/?.lua;;" wireshark sample.pcap
+ LUA_CPATH="/path/to/lib/lua/5.4/?.so;;" wireshark sample.pcap
 
 Usage
 =====
