@@ -40,6 +40,10 @@ if (gui_enabled()) then
 	local suri_tls_issuerdn = ProtoField.string("suricata.tls.issuerdn", "TLS issuer DN", FT_STRING)
 	local suri_tls_fingerprint = ProtoField.string("suricata.tls.fingerprint", "TLS fingerprint", FT_STRING)
 	local suri_tls_version = ProtoField.string("suricata.tls.version", "TLS version", FT_STRING)
+	local suri_tls_sni = ProtoField.string("suricata.tls.sni", "TLS SNI", FT_STRING)
+	local suri_tls_ja3 = ProtoField.string("suricata.tls.ja3", "TLS JA3 hash", FT_STRING)
+	local suri_tls_ja3s = ProtoField.string("suricata.tls.ja3s", "TLS JA3S hash", FT_STRING)
+	local suri_tls_ja4 = ProtoField.string("suricata.tls.ja4", "TLS JA4", FT_STRING)
 
 	local suri_ssh_client_version = ProtoField.string("suricata.ssh.client.version", "SSH client version", FT_STRING)
 	local suri_ssh_client_proto = ProtoField.string("suricata.ssh.client.proto", "SSH client protocol", FT_STRING)
@@ -84,6 +88,7 @@ if (gui_enabled()) then
 	--				       "When running suricata, create a copy of alert"
 	--				       .. " file in the directory of the pcap file")
 	suri_proto.fields = {suri_gid, suri_sid, suri_rev, suri_msg, suri_tls_subject, suri_tls_issuerdn, suri_tls_fingerprint, suri_tls_version,
+				suri_tls_sni, suri_tls_ja3, suri_tls_ja3s, suri_tls_ja4,
 				suri_ssh_client_version, suri_ssh_client_proto, suri_ssh_server_version, suri_ssh_server_proto,
 				suri_fileinfo_filename, suri_fileinfo_magic, suri_fileinfo_md5, suri_fileinfo_sha1, suri_fileinfo_sha256,
 				suri_fileinfo_size, suri_fileinfo_stored, 
@@ -105,13 +110,34 @@ if (gui_enabled()) then
 					subtree:add(suri_rev, val['rev'])
 					subtree:add(suri_msg, val['msg'])
 					subtree:add_expert_info(PI_MALFORMED, PI_WARN, val['msg'])
-				elseif val['tls_subject'] then
+				elseif val['tls'] then
 					subtree = tree:add(suri_proto, "Suricata TLS Info")
-					-- add protocol fields to subtree
-					subtree:add(suri_tls_subject, val['tls_subject'])
-					subtree:add(suri_tls_issuerdn, val['tls_issuerdn'])
-					subtree:add(suri_tls_fingerprint, val['tls_fingerprint'])
-					subtree:add(suri_tls_version, val['tls_version'])
+					-- add protocol fields to subtree, certificate fields
+					-- are not available in TLS 1.3 or on resumed sessions
+					if val['tls_sni'] then
+						subtree:add(suri_tls_sni, val['tls_sni'])
+					end
+					if val['tls_subject'] then
+						subtree:add(suri_tls_subject, val['tls_subject'])
+					end
+					if val['tls_issuerdn'] then
+						subtree:add(suri_tls_issuerdn, val['tls_issuerdn'])
+					end
+					if val['tls_fingerprint'] then
+						subtree:add(suri_tls_fingerprint, val['tls_fingerprint'])
+					end
+					if val['tls_version'] then
+						subtree:add(suri_tls_version, val['tls_version'])
+					end
+					if val['tls_ja3'] then
+						subtree:add(suri_tls_ja3, val['tls_ja3'])
+					end
+					if val['tls_ja3s'] then
+						subtree:add(suri_tls_ja3s, val['tls_ja3s'])
+					end
+					if val['tls_ja4'] then
+						subtree:add(suri_tls_ja4, val['tls_ja4'])
+					end
 					subtree:add_expert_info(PI_REASSEMBLE, PI_NOTE, 'TLS Info')
 				elseif val['ssh_client_version'] then
 					subtree = tree:add(suri_proto, "Suricata SSH Info")
@@ -211,9 +237,14 @@ if (gui_enabled()) then
 						if suri_alerts[id] == nil then
 							suri_alerts[id] = {}
 						end
+						local tls = event["tls"]
 						table.insert(suri_alerts[id],
-							{ tls_subject = event["tls"]["subject"], tls_issuerdn = event["tls"]["issuerdn"],
-							tls_fingerprint = event["tls"]["fingerprint"], tls_version = event["tls"]["version"]})
+							{ tls = true,
+							tls_subject = tls["subject"], tls_issuerdn = tls["issuerdn"],
+							tls_fingerprint = tls["fingerprint"], tls_version = tls["version"],
+							tls_sni = tls["sni"], tls_ja4 = tls["ja4"],
+							tls_ja3 = tls["ja3"] and tls["ja3"]["hash"],
+							tls_ja3s = tls["ja3s"] and tls["ja3s"]["hash"]})
 					elseif event["event_type"] == "ssh" then
 						if suri_alerts[id] == nil then
 							suri_alerts[id] = {}
